@@ -75,6 +75,11 @@ void initialize() {
   });
 
   // Initialize chassis and auton selector
+  // Reset the winch encoder so position starts at 0 on power-up.
+  // Optionally configure limits — adjust these values to match your robot.
+  winch_reset_encoder();
+  winch_set_limits(-2160, 2160);  
+
   chassis.initialize();
   ez::as::initialize();
   master.rumble(chassis.drive_imu_calibrated() ? "." : "---");
@@ -182,6 +187,9 @@ void ez_screen_task() {
       if (ez::as::page_blank_amount() > 0)
         ez::as::page_blank_remove_all();
     }
+
+    // Display winch position on the brain screen (line 8)
+    ez::screen_print("Winch: " + util::to_string_with_precision(get_winch_position()) + " deg", 8);
 
     pros::delay(ez::util::DELAY_TIME);
   }
