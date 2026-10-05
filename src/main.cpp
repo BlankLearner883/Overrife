@@ -255,6 +255,7 @@ void opcontrol() {
     // Put more user control code here!
     // . . .
 
+    //Intake
     if (master.get_digital(DIGITAL_R2)) {
       intake.move(127);
     } 
@@ -265,6 +266,8 @@ void opcontrol() {
       intake.move(0);
     }
 
+
+    //Toggle
     if (master.get_digital(DIGITAL_DOWN)) {
       toggle.move(127);
     }
@@ -274,7 +277,7 @@ void opcontrol() {
     }
     
 
-
+    //Winch; need to add max and min limiters cuz it unwinds itself
     if (master.get_digital(DIGITAL_L2)) {
       winch(127);
     } 
@@ -284,6 +287,21 @@ void opcontrol() {
       else {
         winch(0);
       }
+
+    if(master.get_digital(DIGITAL_X)) 
+    {
+      arm1.move(127);
+    }
+    
+    else if(master.get_digital(DIGITAL_B)) 
+    {
+      arm1.move(-127);
+    }
+    
+    else 
+    {
+      arm1.move(0);
+    }
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }
 }
