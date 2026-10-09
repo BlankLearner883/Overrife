@@ -31,8 +31,6 @@ ez::Drive chassis(
  */
 void initialize() {
   // Print our branding over your terminal :D
-  ez::ez_template_print();
-
   pros::delay(500);  // Stop the user from doing anything while legacy ports configure
 
   // Look at your horizontal tracking wheel and decide if it's in front of the midline of your robot or behind it
@@ -205,7 +203,7 @@ void ez_template_extras() {
     //  When enabled:
     //  * use A and Y to increment / decrement the constants
     //  * use the arrow keys to navigate the constants
-    if (master.get_digital_new_press(DIGITAL_X))
+    if (master.get_digital_new_press(DIGITAL_A))
       chassis.pid_tuner_toggle();
 
     // Trigger the selected autonomous routine
@@ -243,6 +241,21 @@ void opcontrol() {
   // This is preference to what you like to drive on
   chassis.drive_brake_set(MOTOR_BRAKE_COAST);
 
+  bool claw_state = false;
+
+  // Arm sensitivity multiplier
+  const double ARM_SENSITIVITY = 0.75;
+
+  //Arm Min and Max, numbers are super temp get these the fuck outta here
+  const int WINCH_MIN = (0 * 6) + 36000;
+  const int WINCH_MAX = 36000 * 6 * 1.5;
+
+  //Locks the arm sometimes
+    arm1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    winch1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    winch2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
+
   while (true) {
     // Gives you some extras to make EZ-Template ezier
     ez_template_extras();
@@ -277,12 +290,18 @@ void opcontrol() {
     }
     
 
-    //Winch; need to add max and min limiters cuz it unwinds itself
+    //Winch; need to add max and min limiters cuz it fucking unwinds itself
     if (master.get_digital(DIGITAL_L2)) {
-      winch(127);
+        winch(127);
     } 
     else if (master.get_digital(DIGITAL_L1)) {
-      winch(-127);
+
+      if (winch_rotation.get_position() <= WINCH_MIN) {
+        winch(0);
+      }
+      else {
+        winch(-127);
+      }
     } 
       else {
         winch(0);
@@ -290,18 +309,26 @@ void opcontrol() {
 
     if(master.get_digital(DIGITAL_X)) 
     {
-      arm1.move(127);
+
+      arm1.move(127 * ARM_SENSITIVITY);
     }
     
     else if(master.get_digital(DIGITAL_B)) 
     {
-      arm1.move(-127);
+      arm1.move(-127 * ARM_SENSITIVITY);
     }
     
     else 
     {
       arm1.move(0);
     }
+
+    //Claw
+    if (master.get_digital_new_press(DIGITAL_R1)) {
+      claw_state = !claw_state;
+      claw.set_value(claw_state);
+    }
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }
+
 }

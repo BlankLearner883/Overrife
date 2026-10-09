@@ -18,6 +18,10 @@ inline void winch(int input) {
 }
 
 
+inline pros::adi::DigitalOut claw('A'); // Makes Claw
+inline pros::Rotation winch_rotation(5); //  Makes arm rotation sensor
+
+
 
 
 // inline pros::adi::DigitalIn limit_switch('A');
