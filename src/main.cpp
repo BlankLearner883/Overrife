@@ -246,9 +246,16 @@ void opcontrol() {
   // Arm sensitivity multiplier
   const double ARM_SENSITIVITY = 0.75;
 
-  //Arm Min and Max, numbers are super temp get these the fuck outta here
+  //Winch Min and Max, numbers are super temp get these the fuck outta here
   const int WINCH_MIN = (0 * 6) + 36000;
   const int WINCH_MAX = 36000 * 6 * 1.5;
+
+  //Arm Min and Max, numbers are super temp get these the fuck outta here
+  const int ARM_MIN = 0;
+  const int ARM_MAX = 330;
+
+  //Intake sensitivity
+  const double INTAKE_SENSITIVITY = 0.8;
 
   //Locks the arm sometimes
     arm1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
@@ -270,10 +277,10 @@ void opcontrol() {
 
     //Intake
     if (master.get_digital(DIGITAL_R2)) {
-      intake.move(127);
+      intake.move(127 * INTAKE_SENSITIVITY);
     } 
     else if (master.get_digital(DIGITAL_Y)) {
-      intake.move(-127);
+      intake.move(-127 * INTAKE_SENSITIVITY);
     } 
     else {
       intake.move(0);
@@ -307,16 +314,19 @@ void opcontrol() {
         winch(0);
       }
 
+
+      // Arm ig
     if(master.get_digital(DIGITAL_X)) 
     {
-
-      arm1.move(127 * ARM_SENSITIVITY);
+      
+        arm1.move(127 * ARM_SENSITIVITY);
     }
     
     else if(master.get_digital(DIGITAL_B)) 
     {
-      arm1.move(-127 * ARM_SENSITIVITY);
-    }
+        arm1.move(-127 * ARM_SENSITIVITY);
+      }
+    
     
     else 
     {

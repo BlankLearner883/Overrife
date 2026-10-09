@@ -17,9 +17,11 @@ inline void winch(int input) {
   winch2.move(input);
 }
 
+// Pros bs
 
 inline pros::adi::DigitalOut claw('A'); // Makes Claw
-inline pros::Rotation winch_rotation(5); //  Makes arm rotation sensor
+inline pros::Rotation winch_rotation(5); //  Makes winch rotation sensor
+inline pros::Rotation arm_rotation(6); //  Makes arm rotation sensor
 
 
 

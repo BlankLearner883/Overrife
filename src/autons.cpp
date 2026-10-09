@@ -52,6 +52,9 @@ void default_constants() {
 // Drive Example
 ///
 void drive_example() {
+  toggle.move(127);
+  pros::delay(600);
+  toggle.move(0);
   // The first parameter is target inches
   // The second parameter is max speed the robot will drive at
   // The third parameter is a boolean (true or false) for enabling/disabling a slew at the start of drive motions
@@ -60,11 +63,6 @@ void drive_example() {
   chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
   chassis.pid_wait();
 
-  chassis.pid_drive_set(-12_in, DRIVE_SPEED);
-  chassis.pid_wait();
-
-  chassis.pid_drive_set(-12_in, DRIVE_SPEED);
-  chassis.pid_wait();
 }
 
 ///
