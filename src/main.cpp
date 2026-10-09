@@ -318,14 +318,19 @@ void opcontrol() {
       // Arm ig
     if(master.get_digital(DIGITAL_X)) 
     {
-      
+      while (arm1.get_current_draw() != 127) {
+        arm1.move(arm1.get_current_draw() + 1);
+      }
         arm1.move(127 * ARM_SENSITIVITY);
     }
     
     else if(master.get_digital(DIGITAL_B)) 
     {
-        arm1.move(-127 * ARM_SENSITIVITY);
+      while(arm1.get_current_draw() != -127) {
+        arm1.move(arm1.get_current_draw() - 1);
       }
+      arm1.move(-127 * ARM_SENSITIVITY);
+    }
     
     
     else 
