@@ -1,4 +1,5 @@
 #include "main.h"
+#include <algorithm>
 
 /////
 // For installation, upgrading, documentations, and tutorials, check out our website!
@@ -134,6 +135,14 @@ void autonomous() {
   ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
 }
 
+void arm_to_score() {
+  const double ARM_SCORE_POSITION = -1022;  // Position for scoring
+  const double ARM_SPEED = 150;  // Speed for moving the arm
+
+  //Move arm to scoring position
+  arm1.move_absolute(ARM_SCORE_POSITION, ARM_SPEED);
+}
+
 /**
  * Simplifies printing tracker values to the brain screen
  */
@@ -246,6 +255,10 @@ void opcontrol() {
   // Arm sensitivity multiplier
   const double ARM_SENSITIVITY = 0.75;
 
+  // Arm easing: current commanded power, and max change per loop (loop is ~2 ms)
+  double arm_power = 0;
+  const double ARM_RAMP = 1.0;  // bigger = snappier, smaller = softer (try 0.5 to 3)
+
   //Winch Min and Max, numbers are super temp get these the fuck outta here
   const int WINCH_MIN = (0 * 6) + 36000;
   const int WINCH_MAX = 36000 * 6 * 1.5;
@@ -266,7 +279,7 @@ void opcontrol() {
   while (true) {
     // Gives you some extras to make EZ-Template ezier
     ez_template_extras();
-     chassis.opcontrol_arcade_standard(ez::SPLIT);  
+    chassis.opcontrol_arcade_standard(ez::SPLIT);
     // chassis.opcontrol_arcade_standard(ez::SINGLE);  // Standard single arcade
     // chassis.opcontrol_arcade_flipped(ez::SPLIT);    // Flipped split arcade
     // chassis.opcontrol_arcade_flipped(ez::SINGLE);   // Flipped single arcade
@@ -275,75 +288,62 @@ void opcontrol() {
     // Put more user control code here!
     // . . .
 
-    //Intake
+    // Intake
     if (master.get_digital(DIGITAL_R2)) {
       intake.move(127 * INTAKE_SENSITIVITY);
-    } 
-    else if (master.get_digital(DIGITAL_Y)) {
+    } else if (master.get_digital(DIGITAL_RIGHT)) {
       intake.move(-127 * INTAKE_SENSITIVITY);
-    } 
-    else {
+    } else {
       intake.move(0);
     }
 
-
-    //Toggle
-    if (master.get_digital(DIGITAL_DOWN)) {
+    // Toggle
+    if (master.get_digital(DIGITAL_Y)) {
       toggle.move(127);
-    }
-
-    else {
+    } else {
       toggle.move(0);
     }
-    
 
-    //Winch; need to add max and min limiters cuz it fucking unwinds itself
+    // Winch; need to add max and min limiters cuz it fucking unwinds itself
     if (master.get_digital(DIGITAL_L2)) {
-        winch(127);
-    } 
-    else if (master.get_digital(DIGITAL_L1)) {
-
+      winch(127);
+    } else if (master.get_digital(DIGITAL_L1)) {
       if (winch_rotation.get_position() <= WINCH_MIN) {
         winch(0);
-      }
-      else {
+      } else {
         winch(-127);
       }
-    } 
-      else {
-        winch(0);
-      }
-
-
-      // Arm ig
-    if(master.get_digital(DIGITAL_X)) 
-    {
-      while (arm1.get_current_draw() != 127) {
-        arm1.move(arm1.get_current_draw() + 1);
-      }
-        arm1.move(127 * ARM_SENSITIVITY);
-    }
-    
-    else if(master.get_digital(DIGITAL_B)) 
-    {
-      while(arm1.get_current_draw() != -127) {
-        arm1.move(arm1.get_current_draw() - 1);
-      }
-      arm1.move(-127 * ARM_SENSITIVITY);
-    }
-    
-    
-    else 
-    {
-      arm1.move(0);
+    } else {
+      winch(0);
     }
 
-    //Claw
+    // Arm (eased)
+    double arm_target = 0;
+    if (master.get_digital(DIGITAL_X)) {
+      arm_target = 127 * ARM_SENSITIVITY;
+    } else if (master.get_digital(DIGITAL_B)) {
+      arm_target = -127 * ARM_SENSITIVITY;
+    }
+
+    if (arm_power < arm_target) {
+      arm_power = std::min(arm_power + ARM_RAMP, arm_target);
+    } else if (arm_power > arm_target) {
+      arm_power = std::max(arm_power - ARM_RAMP, arm_target);
+    }
+
+    arm1.move((int)arm_power);
+
+    // Claw
     if (master.get_digital_new_press(DIGITAL_R1)) {
       claw_state = !claw_state;
       claw.set_value(claw_state);
     }
-    pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
-  }
 
-}
+    // Scoring macro
+    if(master.get_digital_new_press(DIGITAL_DOWN)){
+      arm_to_score();
+    }
+
+    pros::delay(2);  // This is used for timer calculations! Keep this ez::util::DELAY_TIME
+  }
+} 
